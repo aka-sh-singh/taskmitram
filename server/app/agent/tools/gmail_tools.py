@@ -8,7 +8,7 @@ from uuid import UUID
 from langchain_core.tools import tool
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.services.integrations.google import validate_google_capability
+from app.integrations.google import validate_google_capability
 
 
 GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1"

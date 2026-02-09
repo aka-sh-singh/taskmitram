@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -6,17 +5,9 @@ import { Zap, Workflow, ArrowRight, Link as LinkIcon, Brain } from 'lucide-react
 import Navbar from '@/components/layout/Navbar';
 
 const Landing = () => {
-    const { isAuthenticated, isLoading, silentRefresh } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const initAuth = async () => {
-            if (localStorage.getItem('access_token')) {
-                await silentRefresh();
-            }
-        };
-        initAuth();
-    }, []);
 
     if (isLoading) {
         return (

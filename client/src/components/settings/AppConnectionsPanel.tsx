@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { integrationsApi, PROVIDERS, IntegrationStatus } from "@/lib/integrations";
-import { Mail, Loader2, Check, X } from "lucide-react";
+import { Mail, Loader2, Check, X, HardDrive, FileSpreadsheet, Github } from "lucide-react";
 import { toast } from "react-toastify";
 
 interface AppInfo {
@@ -21,16 +21,37 @@ export function AppConnectionsPanel() {
             icon: <Mail className="h-5 w-5" />,
             connected: false,
         },
+        {
+            id: "drive",
+            provider: PROVIDERS.GOOGLE_DRIVE,
+            name: "Google Drive",
+            icon: <HardDrive className="h-5 w-5" />,
+            connected: false,
+        },
+        {
+            id: "sheets",
+            provider: PROVIDERS.GOOGLE_SHEETS,
+            name: "Google Sheets",
+            icon: <FileSpreadsheet className="h-5 w-5" />,
+            connected: false,
+        },
+        {
+            id: "github",
+            provider: PROVIDERS.GITHUB,
+            name: "GitHub",
+            icon: <Github className="h-5 w-5" />,
+            connected: false,
+        },
     ]);
     const [isLoading, setIsLoading] = useState(true);
     const [processingProvider, setProcessingProvider] = useState<string | null>(null);
-
-    useEffect(() => {
-        fetchIntegrationStatus();
-    }, []);
+    const isFetchingStatus = useRef(false);
 
     const fetchIntegrationStatus = async () => {
+        if (isFetchingStatus.current) return;
+
         try {
+            isFetchingStatus.current = true;
             setIsLoading(true);
             const response = await integrationsApi.getStatus();
 
@@ -48,15 +69,30 @@ export function AppConnectionsPanel() {
             toast.error("Failed to load integration status");
         } finally {
             setIsLoading(false);
+            isFetchingStatus.current = false;
         }
     };
 
-    const handleConnect = async (provider: string) => {
-        if (provider !== PROVIDERS.GOOGLE_GMAIL) return;
+    useEffect(() => {
+        fetchIntegrationStatus();
+    }, []);
 
+    const handleConnect = async (provider: string) => {
         try {
             setProcessingProvider(provider);
-            const response = await integrationsApi.google.connect();
+            let response;
+
+            if (provider === PROVIDERS.GOOGLE_GMAIL) {
+                response = await integrationsApi.google.connect();
+            } else if (provider === PROVIDERS.GOOGLE_DRIVE) {
+                response = await integrationsApi.drive.connect();
+            } else if (provider === PROVIDERS.GOOGLE_SHEETS) {
+                response = await integrationsApi.sheets.connect();
+            } else if (provider === PROVIDERS.GITHUB) {
+                response = await integrationsApi.github.connect();
+            } else {
+                return;
+            }
 
             if (response.auth_url) {
                 localStorage.setItem("oauth_return_url", window.location.pathname);
@@ -70,15 +106,26 @@ export function AppConnectionsPanel() {
     };
 
     const handleDisconnect = async (provider: string) => {
-        if (provider !== PROVIDERS.GOOGLE_GMAIL) return;
-
         try {
             setProcessingProvider(provider);
-            const response = await integrationsApi.google.disconnect();
+            let response;
+
+            if (provider === PROVIDERS.GOOGLE_GMAIL) {
+                response = await integrationsApi.google.disconnect();
+            } else if (provider === PROVIDERS.GOOGLE_DRIVE) {
+                response = await integrationsApi.drive.disconnect();
+            } else if (provider === PROVIDERS.GOOGLE_SHEETS) {
+                response = await integrationsApi.sheets.disconnect();
+            } else if (provider === PROVIDERS.GITHUB) {
+                response = await integrationsApi.github.disconnect();
+            } else {
+                return;
+            }
 
             if (response.status === "disconnected") {
                 await fetchIntegrationStatus();
-                toast.success("Gmail disconnected successfully");
+                const providerName = provider.includes('_') ? provider.split('_')[1] : provider;
+                toast.success(`${providerName.toUpperCase()} disconnected successfully`);
             }
         } catch (error) {
             console.error("Failed to disconnect:", error);

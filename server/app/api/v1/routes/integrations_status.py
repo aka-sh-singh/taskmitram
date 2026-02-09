@@ -9,8 +9,7 @@ from app.schemas.integrations_schema import (
     IntegrationStatusResponse
 )
 
-from app.db.crud.crud_integrations import is_connected
-from app.services.integrations.google import PROVIDER_NAME as GOOGLE_PROVIDER
+from app.services.integration_service import get_all_integration_statuses_service
 
 router = APIRouter(prefix="/integrations", tags=["Integrations - Status"])
 
@@ -20,11 +19,4 @@ async def get_integration_status(
     session: AsyncSession = Depends(get_session),
     user=Depends(get_current_user)
 ):
-    status_dict = {
-        GOOGLE_PROVIDER: IntegrationStatus(
-            provider=GOOGLE_PROVIDER,
-            connected=await is_connected(session, user.id, GOOGLE_PROVIDER)
-        )
-    }
-
-    return IntegrationStatusResponse(status=status_dict)
+    return await get_all_integration_statuses_service(session, user.id)

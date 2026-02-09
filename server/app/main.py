@@ -10,13 +10,13 @@ from app.api.v1.router import router as v1_router
 # LIFESPAN (startup & shutdown events)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ---- STARTUP ----
+    # Startupt
     await init_db()
     print(" Server started. Database initialized.")
     
     yield
     
-    # ---- SHUTDOWN ----
+    # shutdwn
     print(" Server shutting down.")
 
 

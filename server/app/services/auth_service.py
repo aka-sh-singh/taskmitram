@@ -84,24 +84,7 @@ async def login_service(session: AsyncSession, data: UserLogin) -> TokenResponse
 
 
 
-# app/services/auth_service.py
-
-from datetime import datetime, timedelta, timezone
-from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.core.jwt import (
-    create_access_token,
-    create_refresh_token,
-    decode_refresh_token,
-)
-
-from app.core.config import jwtconfig
-from app.db.crud.crud_user import (
-    get_refresh_token,
-    delete_refresh_token,
-    store_refresh_token,
-)
+# REFRESH TOKEN SERVICE
 
 
 async def refresh_token_service(session: AsyncSession, data) -> dict:

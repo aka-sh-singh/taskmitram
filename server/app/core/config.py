@@ -41,7 +41,13 @@ class IntegrationSetting(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI: str
-    GOOGLE_SCOPES: str
+    GOOGLE_GMAIL_SCOPES: str
+    GOOGLE_DRIVE_SCOPES: str
+    GOOGLE_SHEETS_SCOPES: str
+    GITHUB_CLIENT_ID: str
+    GITHUB_CLIENT_SECRET: str
+    GITHUB_REDIRECT_URI: str
+    GITHUB_SCOPES: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

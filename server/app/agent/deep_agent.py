@@ -16,22 +16,8 @@ from app.db.crud.crud_pending_action import (
 )
 
 
-# TOOLS
-from app.agent.tools.basic_tools import summarize_text,current_user_id
-# TOOL DEFINITIONS
-from app.agent.tools.gmail_tools import send_gmail, fetch_recent_gmail, read_gmail_message, verify_delivery
-
-# Tools that require Human-in-the-loop approval
-TOOLS_REQUIRING_APPROVAL = ["send_gmail"]
-
-TOOLS = [
-    summarize_text,
-    current_user_id,
-    send_gmail,
-    fetch_recent_gmail,
-    read_gmail_message,
-    verify_delivery,
-]
+# TOOL REGISTRY
+from app.agent.tools import ALL_TOOLS as TOOLS, TOOLS_REQUIRING_APPROVAL, is_approval_required, get_tool_by_name
 
 
 # SYSTEM PROMPT
@@ -40,17 +26,19 @@ You are TASKमित्र (Task Mitra), a highly capable AI assistant.
 
 Your capabilities:
 1. Summarize text.
-2. Fetch and manage Gmail emails.
-3. Verify if emails were successfully delivered or bounced.
-4. Help with general tasks and information.
+2. Fetch and manage Gmail emails (read, search, send, check delivery).
+3. Google Drive: List files, read text/doc content, and create new files.
+4. Google Sheets: Read cell ranges, update/overwrite values, append rows to tables, and create new spreadsheets.
+5. GitHub: List repositories, read file contents, browse issues, and create new issues.
+6. Help with general tasks and information.
 
 Rules of Engagement:
 - When a tool is called, you will receive its output in the next turn. 
 - Use the data provided by the tools to answer the user's request. 
-- PRESENT EMAILS CLEARLY: When displaying an email body, use natural markdown for formatting (e.g., # for headers, ** for importance, > for quotes). 
-- **CRITICAL**: DO NOT wrap the email body in code blocks (```) or black containers. Treat the email text as part of your direct conversational response.
-- High-risk actions (like sending emails) ALWAYS require user approval via the HITL system.
-- **DELIVERY CHECKS**: If you send an email to a suspicious or nonsensical address (like 'abc@xyz.com'), warn the user that it might bounce. If asked to check if an email arrived, use the 'verify_delivery' tool to look for bounce-back messages from the mailer-daemon.
+- PRESENT DATA CLEARLY: Use tables for sheet data/issue lists and structured markdown for file lists or email bodies.
+- **CRITICAL**: DO NOT wrap content in global code blocks (```) or black containers. Treat the text as part of your direct conversational response.
+- High-risk actions (sending emails, creating/modifying files, sheets, or issues) ALWAYS require user approval via the HITL system.
+- **CONTEXT**: Before reading a file or list issues, ensure you have the correct 'owner' and 'repo' name. Use 'list_github_repositories' if you are unsure about the exact repository name.
 - Be proactive but always polite and concise.
 """
 
@@ -65,7 +53,7 @@ llm_with_tools = llm.bind_tools(TOOLS)
 
 
 
-# MAIN ENTRY POINT
+# main entry point
 async def run_deep_agent(
     *,
     chat_id: UUID,
@@ -78,33 +66,32 @@ async def run_deep_agent(
     Executes the conversational DeepAgent with HITL support and streaming.
     """
 
-    # 1. HITL Check: See if we have an approved action waiting to be executed
-    pending = await get_pending_action(session, chat_id)
-    # If the action is already approved via button, we will use it in the loop below.
-    # We only care about it if it's 'approved'. If it's 'awaiting_approval', we pause later.
 
-    # 2. Build conversation history
+    pending = await get_pending_action(session, chat_id)
+
+
+
     history = to_langchain_messages(chat_messages)
     
     messages = [SystemMessage(content=SYSTEM_PROMPT)] + history
     
-    # Append current input if not already in history
+
     messages.append(HumanMessage(content=user_input))
 
 
-    # 3. Agent Loop (Manual Execution with Streaming)
+
     max_steps = 5
     for _ in range(max_steps):
         full_msg = None
         
-        # Invoke LLM with streaming
+
         async for chunk in llm_with_tools.astream(messages):
             if full_msg is None:
                 full_msg = chunk
             else:
                 full_msg += chunk
             
-            # Yield content chunks only if this chunk doesn't start a tool call
+
             if not getattr(chunk, 'tool_call_chunks', []) and chunk.content:
                 yield chunk.content
 
@@ -119,11 +106,11 @@ async def run_deep_agent(
             tool_args = tool_call["args"]
             tool_id = tool_call["id"]
 
-            # HITL CHECK: Re-verify status from database to avoid stale reads
+
             pending = await get_pending_action(session, chat_id)
             
             is_approved = False
-            if requires_approval(tool_name):
+            if is_approval_required(tool_name):
                 if pending and pending.status == "approved" and pending.tool_name == tool_name:
                     is_approved = True
                     tool_args = pending.tool_args
@@ -139,7 +126,7 @@ async def run_deep_agent(
                     return
 
             # EXECUTE TOOL
-            selected_tool = next((t for t in TOOLS if t.name == tool_name), None)
+            selected_tool = get_tool_by_name(tool_name)
             
             tool_output = "Error: Tool not found."
             if selected_tool:

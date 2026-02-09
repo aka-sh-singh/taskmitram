@@ -46,13 +46,28 @@ axiosInstance.interceptors.request.use(
     }
 );
 
+// Export a clean refresh function that doesn't trigger interceptors
+export const refreshTokens = async (refreshToken: string) => {
+    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+        refresh_token: refreshToken,
+    });
+    return response.data;
+};
+
 // Response interceptor to handle token refresh
 axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
+        // If it's a 401 and we haven't retried yet
         if (error.response?.status === 401 && !originalRequest._retry) {
+
+            // If the request itself was a login or refresh attempt, don't retry it to avoid infinite loops
+            if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh')) {
+                return Promise.reject(error);
+            }
+
             originalRequest._retry = true;
 
             if (isRefreshing) {
@@ -69,15 +84,10 @@ axiosInstance.interceptors.response.use(
 
             try {
                 const refreshToken = localStorage.getItem('refresh_token');
-                if (!refreshToken) {
-                    throw new Error('No refresh token');
-                }
+                if (!refreshToken) throw new Error('No refresh token');
 
-                const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-                    refresh_token: refreshToken,
-                });
-
-                const { access_token, refresh_token: newRefreshToken } = response.data;
+                const data = await refreshTokens(refreshToken);
+                const { access_token, refresh_token: newRefreshToken } = data;
 
                 localStorage.setItem('access_token', access_token);
                 localStorage.setItem('refresh_token', newRefreshToken);
@@ -94,10 +104,15 @@ axiosInstance.interceptors.response.use(
                 );
             } catch (refreshError) {
                 isRefreshing = false;
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                window.location.href = '/login';
-                toast.error('Session expired. Please login again.');
+
+                // Only redirect/clear if it's a genuine auth failure (not a 500 or network error)
+                if (error.response?.status === 401) {
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
+                    toast.error('Session expired. Please login again.');
+                }
+
                 return Promise.reject(refreshError);
             }
         }

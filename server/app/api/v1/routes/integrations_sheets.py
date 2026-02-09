@@ -14,9 +14,9 @@ from app.services.integration_service import (
     connect_google_user_service,
     disconnect_google_user_service
 )
-from app.integrations.google import GMAIL_PROVIDER
+from app.integrations.google import SHEETS_PROVIDER
 
-router = APIRouter(prefix="/integrations/google", tags=["Integrations - Google"])
+router = APIRouter(prefix="/integrations/google/sheets", tags=["Integrations - Google Sheets"])
 
 # A simple schema for the POST request body
 class GoogleExchangeRequest(BaseModel):
@@ -24,24 +24,24 @@ class GoogleExchangeRequest(BaseModel):
 
 # 1) Connect - Get Google OAuth URL
 @router.get("/connect", response_model=ConnectURLResponse)
-async def connect_google():
-    return await get_google_connect_url_service(GMAIL_PROVIDER)
+async def connect_google_sheets():
+    return await get_google_connect_url_service(SHEETS_PROVIDER)
 
 
 # 2) Exchange - Frontend sends the code here
 @router.post("/exchange", response_model=OAuthSuccess)
-async def google_exchange_code(
+async def google_sheets_exchange_code(
     payload: GoogleExchangeRequest,
     session: AsyncSession = Depends(get_session),
     user = Depends(get_current_user)
 ):
-    return await connect_google_user_service(session, user.id, payload.code, GMAIL_PROVIDER)
+    return await connect_google_user_service(session, user.id, payload.code, SHEETS_PROVIDER)
 
 
 # 3) Disconnect - remove stored token
 @router.delete("/disconnect", response_model=DisconnectResponse)
-async def disconnect_google(
+async def disconnect_google_sheets(
     session: AsyncSession = Depends(get_session),
     user = Depends(get_current_user)
 ):
-    return await disconnect_google_user_service(session, user.id, GMAIL_PROVIDER)
+    return await disconnect_google_user_service(session, user.id, SHEETS_PROVIDER)

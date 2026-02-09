@@ -44,18 +44,26 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { silentRefresh } = useAuth();
     const navigate = useNavigate();
 
+    const isFetchingChats = React.useRef(false);
+
     const loadChats = async () => {
+        if (isFetchingChats.current) return;
+
         const token = localStorage.getItem('access_token');
         if (!token) {
             setChats([]);
             return;
         }
+
+        isFetchingChats.current = true;
         try {
             const response = await axiosInstance.get('/chats/');
             setChats(response.data);
         } catch (error) {
             console.error('Failed to load chats:', error);
             setChats([]);
+        } finally {
+            isFetchingChats.current = false;
         }
     };
 

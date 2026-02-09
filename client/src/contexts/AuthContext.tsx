@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { axiosInstance, setOnTokenRefreshedCallback } from '@/lib/axios';
+import { axiosInstance, setOnTokenRefreshedCallback, refreshTokens } from '@/lib/axios';
 import { toast } from 'react-toastify';
 
 interface User {
@@ -43,16 +43,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     }, []);
 
-    // Silent refresh on mount
+    // Optimized Auth Initialization
     useEffect(() => {
         const initAuth = async () => {
             const token = localStorage.getItem('access_token');
             if (token) {
-                const success = await silentRefresh();
-                if (success) {
+                try {
                     await fetchUserProfile();
+                } catch (error) {
+                    console.error("Initial profile fetch failed:", error);
                 }
             }
+
+            // Only stop "loading" if we succeeded in getting a user OR if we truly have no token
+            // This prevents a "flash" of the login page during token rotation
             setIsLoading(false);
         };
 
@@ -78,12 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         refreshPromise = (async () => {
             try {
-                // Use a standard axios call here to avoid interceptor recursion if it somehow fails
-                const response = await axiosInstance.post("/auth/refresh", {
-                    refresh_token: refresh,
-                });
-
-                const { access_token, refresh_token: newRefreshToken } = response.data;
+                const data = await refreshTokens(refresh);
+                const { access_token, refresh_token: newRefreshToken } = data;
 
                 localStorage.setItem("access_token", access_token);
                 localStorage.setItem("refresh_token", newRefreshToken);
@@ -93,10 +93,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 return true;
             } catch (error) {
-                localStorage.removeItem("access_token");
-                localStorage.removeItem("refresh_token");
-                setAccessToken(null);
-                setRefreshToken(null);
+                // If it's a 401, clear everything. If it's a 500/network error, don't logout!
+                const status = (error as any).response?.status;
+                if (status === 401 || status === 403) {
+                    localStorage.removeItem("access_token");
+                    localStorage.removeItem("refresh_token");
+                    setAccessToken(null);
+                    setRefreshToken(null);
+                    setUser(null);
+                }
                 return false;
             } finally {
                 isRefreshing = false;
@@ -178,7 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 user,
                 accessToken,
                 refreshToken,
-                isAuthenticated: !!accessToken && !!user,
+                isAuthenticated: (!!accessToken || !!localStorage.getItem('access_token')) && !!user,
                 isLoading,
                 login,
                 signup,

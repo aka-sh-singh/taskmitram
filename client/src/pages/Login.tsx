@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,16 @@ import ThemeToggle from '@/components/layout/ThemeToggle';
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const { login } = useAuth();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { login, isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (!isLoading && isAuthenticated) {
+            navigate('/chat/new');
+        }
+    }, [isAuthenticated, isLoading, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,14 +28,14 @@ const Login = () => {
             return;
         }
 
-        setIsLoading(true);
+        setIsSubmitting(true);
         try {
             await login(email, password);
             navigate('/chat/new');
         } catch (error) {
             // Error handled in AuthContext
         } finally {
-            setIsLoading(false);
+            setIsSubmitting(false);
         }
     };
 
@@ -78,9 +85,9 @@ const Login = () => {
                         <Button
                             type="submit"
                             className="w-full bg-primary hover:bg-primary-hover text-primary-foreground"
-                            disabled={isLoading}
+                            disabled={isSubmitting}
                         >
-                            {isLoading ? 'Signing in...' : 'Sign In'}
+                            {isSubmitting ? 'Signing in...' : 'Sign In'}
                         </Button>
                     </form>
 

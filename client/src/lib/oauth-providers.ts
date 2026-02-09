@@ -15,17 +15,21 @@ export const oauthProviders: Record<string, OAuthProvider> = {
         name: "Gmail",
         exchange: (code) => integrationsApi.google.exchange(code),
     },
-    // Future providers - just add entries here:
-    // twitter: {
-    //   id: "twitter",
-    //   name: "Twitter",
-    //   exchange: (code) => integrationsApi.twitter.exchange(code),
-    // },
-    // google_drive: {
-    //   id: "google_drive",
-    //   name: "Google Drive",
-    //   exchange: (code) => integrationsApi.googleDrive.exchange(code),
-    // },
+    google_drive: {
+        id: "google_drive",
+        name: "Google Drive",
+        exchange: (code) => integrationsApi.drive.exchange(code),
+    },
+    google_sheets: {
+        id: "google_sheets",
+        name: "Google Sheets",
+        exchange: (code) => integrationsApi.sheets.exchange(code),
+    },
+    github: {
+        id: "github",
+        name: "GitHub",
+        exchange: (code) => integrationsApi.github.exchange(code),
+    },
 };
 
 // Helper to get provider by ID

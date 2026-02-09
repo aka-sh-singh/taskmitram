@@ -1,19 +1,15 @@
 from uuid import UUID
 
-from app.db.crud.crud_pending_action import (
-    create_pending_action,
-    get_pending_action,
-    update_pending_action_status,
-    delete_pending_action,
+from app.db.crud.crud_pending_action import update_pending_action_status
+from app.agent.tools import is_approval_required
+from app.services.approval_service import (
+    create_pending_action_service,
+    get_latest_pending_action_service,
+    delete_pending_action
 )
 
-HIGH_RISK_TOOLS = {
-    "send_gmail",
-}
-
-
 def requires_approval(tool_name: str) -> bool:
-    return tool_name in HIGH_RISK_TOOLS
+    return is_approval_required(tool_name)
 
 
 from app.agent.approval_llm import generate_approval_message
@@ -26,7 +22,7 @@ async def create_approval_request(
     tool_name,
     tool_args,
 ) -> str:
-    action = await create_pending_action(
+    action = await create_pending_action_service(
         session=session,
         chat_id=chat_id,
         user_id=user_id,
@@ -45,7 +41,7 @@ async def resolve_approval(
     chat_id: UUID,
     user_input: str,
 ):
-    action = await get_pending_action(session, chat_id)
+    action = await get_latest_pending_action_service(session, chat_id)
 
     if not action:
         return None
@@ -60,9 +56,6 @@ async def resolve_approval(
         return action
 
     if decision == "rejected":
-        # First mark as rejected in DB (optional, but good for logs), then delete or keep as rejected
-        # Your previous logic deleted it immediately upon rejection
-        await update_pending_action_status(session, action, "rejected")
         await delete_pending_action(session, action)
         return "rejected"
 
