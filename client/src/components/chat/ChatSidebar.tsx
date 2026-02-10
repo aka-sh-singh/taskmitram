@@ -28,7 +28,12 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const ChatSidebar = () => {
+interface ChatSidebarProps {
+    isOpen: boolean;
+    onToggle: () => void;
+}
+
+const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle }) => {
     const { chats, loadChats, renameChat, deleteChat, currentChatId, setCurrentChatId, clearMessages } = useChat();
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -63,16 +68,26 @@ const ChatSidebar = () => {
 
     return (
         <TooltipProvider>
-            <div className="w-64 h-screen bg-sidebar-bg border-r border-border flex flex-col">
+            <div className={`w-64 h-screen bg-sidebar-bg border-r border-border flex flex-col transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                 <div className="p-4 border-b border-border flex items-center justify-between">
-                    <Link to="/" className="flex flex-col gap-1">
+                    <Link to="/" className="flex flex-col gap-0.5 group">
                         <div className="flex items-center gap-2">
-                            <Workflow className="w-6 h-6 text-primary" />
-                            <span className="text-xl font-bold">TaskMitra</span>
+                            <Workflow className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+                            <span className="text-lg font-bold tracking-tight">TaskMitra</span>
                         </div>
-                        <p className="text-xs text-muted-foreground pl-8">Workflow Orchestration</p>
                     </Link>
-                    <ThemeToggle />
+                    <div className="flex items-center gap-1">
+                        <ThemeToggle />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={onToggle}
+                            title="Close Sidebar"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M9 3v18" /></svg>
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="p-3">

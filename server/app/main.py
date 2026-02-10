@@ -47,6 +47,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Chat-Id"],
+    max_age=600,
 )
 
 

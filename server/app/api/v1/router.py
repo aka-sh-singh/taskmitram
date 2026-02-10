@@ -10,6 +10,7 @@ from app.api.v1.routes.integrations_sheets import router as sheets_router
 from app.api.v1.routes.integrations_github import router as github_router
 from app.api.v1.routes.integrations_status import router as status_router
 from app.api.v1.routes.approvals import router as approvals_router
+from app.api.v1.routes.workflows import router as workflows_router
 
 # Create main v1 router
 router = APIRouter(prefix="/v1")
@@ -24,3 +25,4 @@ router.include_router(sheets_router)
 router.include_router(github_router)
 router.include_router(status_router)
 router.include_router(approvals_router, prefix="/approvals", tags=["Approvals"])
+router.include_router(workflows_router)
