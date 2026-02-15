@@ -1,14 +1,14 @@
-# Taskmitram  
-**Agentic AI Workflow Orchestration & Automation**
+# TaskMitra
+**Personal Agentic AI assistant for Workflow Orchestration & Automation**
 
-Taskmitram is a full-stack platform built to design and execute complex AI-driven workflows. The core idea is to connect Large Language Models with real-world actions in a safe and controlled way. At the moment, the system is focused on Google Workspace (especially Gmail) and includes a strong Human-in-the-Loop (HITL) approval layer for sensitive operations.
+TaskMitra is a full-stack platform built to design and execute complex AI-driven workflows and automate the same. The core idea is to connect Large Language Models with real-world actions in a safe and controlled way. At the moment, the system is focused on Google Workspace (especially Gmail, sheets, drive) and Github. It includes a strong Human-in-the-Loop (HITL) approval layer for sensitive operations.
 
 ---
 
 ## Key Features (Current)
 
-- **Deep Agent Logic**  
-  A streaming AI agent capable of reasoning across multiple steps and invoking tools when required.
+- **Multi Agents Logic**  
+  Multiple AI agent capable of reasoning across multiple steps, invoking tools when required providing context.
 
 - **Human-in-the-Loop (HITL)**  
   Explicit approval flows for high-risk actions such as sending emails on behalf of the user.
