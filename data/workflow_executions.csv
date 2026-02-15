@@ -1,0 +1,2 @@
+id,workflow_id,user_id,execution_type,status,started_at,finished_at,logs,celery_task_id,current_node_id,context
+e5c2f5cc-6bde-4795-a139-b2519e9ff83a,a5731707-6f2c-4c83-b372-ea0dbd0e0e78,fad5921c-ae10-47e4-b687-5abc4f74cd3c,scheduled,failed,2026-02-12 23:53:08.17504+05:30,2026-02-12 23:53:08.182382+05:30,"{""error"": ""Start node not defined for workflow"", ""context"": {}}",,,null
