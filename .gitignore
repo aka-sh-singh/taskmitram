@@ -7,6 +7,8 @@ ENV/
 env/
 .env
 server/app/.env
+data/
+*.csv
 
 # Node / Frontend
 node_modules/
