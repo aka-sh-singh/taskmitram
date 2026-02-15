@@ -1,0 +1,12 @@
+id,chat_id,sender,content,msg_metadata,created_at
+3d01a35e-82bc-4be8-a277-7e3e81717fe9,bb83a1f3-5d09-4dba-9482-c3aba884b904,user,send an email to akashsingh96613@gmail.com for good night message at 11:53pm,null,2026-02-12 23:51:10.108047+05:30
+1d64df63-0875-4f48-a3ac-63abeceeb980,bb83a1f3-5d09-4dba-9482-c3aba884b904,agent,"I'm planning that workflow for you now... 🛠️
+Done! I've created a new workflow: **Send Good Night Email**.
+
+⚠️ **Note:** Since this is a scheduled workflow, I've paused it for your security. Please **approve the automation** below to activate the schedule. [WORKFLOW_ID:c38ae6cc-7d8a-474c-b442-8d466ccdfda5:Send Good Night Email]",null,2026-02-12 23:51:17.96192+05:30
+ad1913e7-4e53-44b0-99d0-6153b295a5e9,bb83a1f3-5d09-4dba-9482-c3aba884b904,user,Activated. Proceeding with the schedule.,null,2026-02-12 23:51:19.545517+05:30
+a15788f3-e11a-4367-aaa6-9523117c1e1c,bb83a1f3-5d09-4dba-9482-c3aba884b904,agent,"I'm planning that workflow for you now... 🛠️
+Done! I've created a new workflow: **Good Night Email**.
+
+⚠️ **Note:** Since this is a scheduled workflow, I've paused it for your security. Please **approve the automation** below to activate the schedule. [WORKFLOW_ID:252d9395-c485-460e-ab8d-145c6125e16e:Good Night Email]",null,2026-02-12 23:51:25.346797+05:30
+ea1eac56-5b75-4c92-b2a3-72da2d991b74,bb83a1f3-5d09-4dba-9482-c3aba884b904,user,Activated. Proceeding with the schedule.,null,2026-02-12 23:51:27.259366+05:30
